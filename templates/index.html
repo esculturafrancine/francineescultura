@@ -1,0 +1,282 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student API Interface</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f4f8;
+            color: #333;
+            max-width: 750px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px #0001;
+        }
+
+        h1 {
+            text-align: center;
+            color: #5145cd;
+        }
+
+        h2 {
+            color: #5145cd;
+        }
+
+        section {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        button {
+            background: #5145cd;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #3930a3;
+        }
+
+        input {
+            padding: 10px;
+            max-width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .result {
+            background: #f7f6ff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-top: 12px;
+            border-radius: 6px;
+            overflow-wrap: anywhere;
+        }
+
+        .result p {
+            margin: 10px 0;
+        }
+
+        .welcome {
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <h1>Student API Interface</h1>
+    <p class="welcome">
+        Welcome! Explore the Flask API using the sections below.
+    </p>
+
+    <section>
+        <h2>Student Information</h2>
+
+        <button onclick="loadStudent()">
+            Load Student Information
+        </button>
+
+        <div id="result" class="result">
+            Click the button to load student information.
+        </div>
+    </section>
+
+    <section>
+        <h2>Greeting API</h2>
+
+        <input
+            type="text"
+            id="nameInput"
+            placeholder="Enter your first name"
+        >
+
+        <button onclick="sayHello()">Say Hello</button>
+
+        <div id="greeting" class="result">
+            Your greeting will appear here.
+        </div>
+    </section>
+
+    <section>
+        <h2>My Hobbies API</h2>
+
+        <button onclick="loadHobbies()">Load My Hobbies</button>
+
+        <div id="hobbiesResult" class="result">
+            Click to display your hobbies.
+        </div>
+    </section>
+
+    <section>
+        <h2>Study Hours API</h2>
+
+        <p>Enter your study hours between 0 and 24.</p>
+
+        <input
+            type="number"
+            id="hoursInput"
+            min="0"
+            max="24"
+            step="0.5"
+            placeholder="Enter study hours"
+        >
+
+        <button onclick="checkStudyHours()">Check Study Hours</button>
+
+        <div id="hoursResult" class="result">
+            Your study feedback will appear here.
+        </div>
+    </section>
+
+</div>
+
+<script>
+    async function loadStudent() {
+        const result = document.getElementById('result');
+        result.textContent = 'Loading student information...';
+
+        try {
+            const response = await fetch('/student');
+            if (!response.ok) throw new Error('Request failed');
+
+            const data = await response.json();
+
+            result.replaceChildren();
+
+            const fields = [
+                ['Student ID', data.student_id],
+                ['Name', data.name],
+                ['Program', data.program],
+                ['Year', data.year],
+                ['Section', data.section]
+            ];
+
+            fields.forEach(([label, value]) => {
+                const p = document.createElement('p');
+                const b = document.createElement('b');
+
+                b.textContent = label + ': ';
+                p.appendChild(b);
+                p.appendChild(document.createTextNode(value));
+                result.appendChild(p);
+            });
+        } catch (error) {
+            result.textContent = 'Unable to retrieve student data.';
+        }
+    }
+
+    async function sayHello() {
+        const name = document.getElementById('nameInput').value.trim();
+        const greeting = document.getElementById('greeting');
+
+        greeting.textContent = 'Loading greeting...';
+
+        try {
+            const response = await fetch(
+                '/hello?name=' + encodeURIComponent(name || 'Student')
+            );
+
+            if (!response.ok) throw new Error('Request failed');
+
+            const data = await response.json();
+            greeting.textContent = data.message;
+        } catch (error) {
+            greeting.textContent = 'Unable to retrieve greeting.';
+        }
+    }
+
+    async function loadHobbies() {
+        const result = document.getElementById('hobbiesResult');
+        result.textContent = 'Loading hobbies...';
+
+        try {
+            const response = await fetch('/hobbies');
+            if (!response.ok) throw new Error('Request failed');
+
+            const data = await response.json();
+
+            result.replaceChildren();
+
+            const student = document.createElement('p');
+            student.textContent = 'Student: ' + data.student;
+            result.appendChild(student);
+
+            const heading = document.createElement('b');
+            heading.textContent = 'Hobbies:';
+            result.appendChild(heading);
+
+            const list = document.createElement('ul');
+
+            data.hobbies.forEach(hobby => {
+                const item = document.createElement('li');
+                item.textContent = hobby;
+                list.appendChild(item);
+            });
+
+            result.appendChild(list);
+
+            const total = document.createElement('p');
+            total.textContent = 'Total Hobbies: ' + data.total_hobbies;
+            result.appendChild(total);
+        } catch (error) {
+            result.textContent = 'Unable to retrieve hobbies.';
+        }
+    }
+
+    async function checkStudyHours() {
+        const hours = document.getElementById('hoursInput').value;
+        const result = document.getElementById('hoursResult');
+
+        if (hours === '') {
+            result.textContent = 'Please enter your study hours.';
+            return;
+        }
+
+        result.textContent = 'Checking study hours...';
+
+        try {
+            const response = await fetch(
+                '/studyhours?hours=' + encodeURIComponent(hours)
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                result.textContent = data.error || 'Unable to check study hours.';
+                return;
+            }
+
+            result.textContent =
+                'Student: ' + data.student +
+                '\nStudy Hours: ' + data.study_hours +
+                '\nFeedback: ' + data.feedback;
+        } catch (error) {
+            result.textContent = 'Unable to retrieve study feedback.';
+        }
+    }
+</script>
+
+</body>
+</html>
