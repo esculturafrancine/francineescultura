@@ -28,7 +28,6 @@ def say_hello():
     })
 
 
-# Custom Endpoint 1: Personal Hobbies
 @app.route('/hobbies')
 def get_hobbies():
     return jsonify({
@@ -42,7 +41,6 @@ def get_hobbies():
     })
 
 
-# Custom Endpoint 2: Study Hours Calculator
 @app.route('/studyhours')
 def study_hours():
     hours = request.args.get('hours', default=None, type=float)
