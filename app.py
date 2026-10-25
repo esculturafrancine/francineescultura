@@ -1,31 +1,12 @@
 
-
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def home():
-    return """
-    <html>
-        <head>
-            <title>Francine Escultura - My API</title>
-        </head>
-        <body>
-            <h1>Welcome to Francine Escultura's API!</h1>
-            <p>BSIT - 3rd Year - Section 3B</p>
-            <p>Student ID: 23-0006</p>
-            <h2>Available API Endpoints</h2>
-            <ul>
-                <li><a href="/student">Student Information</a></li>
-                <li><a href="/hello?name=Francine">Hello API</a></li>
-                <li><a href="/hobbies">My Hobbies</a></li>
-                <li><a href="/studyhours?hours=4">Study Hours API</a></li>
-            </ul>
-        </body>
-    </html>
-    """
+    return render_template('index.html')
 
 
 @app.route('/student')
@@ -47,7 +28,7 @@ def say_hello():
     })
 
 
-# New Endpoint 1: Personal hobbies
+# Custom Endpoint 1: Personal Hobbies
 @app.route('/hobbies')
 def get_hobbies():
     return jsonify({
@@ -61,7 +42,7 @@ def get_hobbies():
     })
 
 
-# New Endpoint 2: Study hours calculator
+# Custom Endpoint 2: Study Hours Calculator
 @app.route('/studyhours')
 def study_hours():
     hours = request.args.get('hours', default=None, type=float)

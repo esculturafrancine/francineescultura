@@ -1,0 +1,424 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Francine Escultura | Student API Interface</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 30px 16px;
+            background: #f2f4fa;
+            color: #252b42;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, #3949ab, #6574cd);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            line-height: 1.7;
+            margin-bottom: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(30, 40, 80, 0.07);
+        }
+
+        h2 {
+            color: #3949ab;
+            margin-top: 0;
+        }
+
+        .description {
+            color: #626b80;
+            line-height: 1.6;
+        }
+
+        button {
+            background: #3949ab;
+            color: white;
+            border: none;
+            padding: 11px 17px;
+            border-radius: 7px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #283593;
+        }
+
+        input {
+            padding: 11px;
+            border: 1px solid #ccd1e0;
+            border-radius: 7px;
+            width: 100%;
+            max-width: 350px;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .result {
+            display: none;
+            margin-top: 18px;
+            padding: 16px;
+            background: #f5f6ff;
+            border: 1px solid #dce1f7;
+            border-radius: 8px;
+            line-height: 1.7;
+            overflow-wrap: anywhere;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result p {
+            margin: 5px 0;
+        }
+
+        .result ul {
+            padding-left: 22px;
+        }
+
+        .api-label {
+            display: inline-block;
+            background: #e8eaff;
+            color: #3949ab;
+            padding: 4px 9px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 16px;
+            color: #747b8d;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 16px 10px;
+            }
+
+            header, .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <header>
+        <h1>Welcome to Francine Escultura's API!</h1>
+        <p>
+            BSIT - 3rd Year - Section 3B<br>
+            Student ID: 23-0006
+        </p>
+        <p>Laboratory Activity 6: Flask API Web Interface</p>
+    </header>
+
+    <!-- STUDENT INFORMATION -->
+    <section class="card">
+        <span class="api-label">GET /student</span>
+        <h2>Student Information</h2>
+        <p class="description">
+            Retrieve student information from your Flask API.
+        </p>
+
+        <button onclick="loadStudent()">
+            Load Student Information
+        </button>
+
+        <div id="studentResult" class="result" aria-live="polite"></div>
+    </section>
+
+    <!-- GREETING API -->
+    <section class="card">
+        <span class="api-label">GET /hello</span>
+        <h2>Greeting API</h2>
+        <p class="description">
+            Enter your name to receive a personalized greeting.
+        </p>
+
+        <input
+            type="text"
+            id="nameInput"
+            placeholder="Enter your first name"
+        >
+
+        <br>
+
+        <button onclick="sayHello()">Say Hello</button>
+
+        <div id="greetingResult" class="result" aria-live="polite"></div>
+    </section>
+
+    <!-- CUSTOM ENDPOINT: HOBBIES -->
+    <section class="card">
+        <span class="api-label">GET /hobbies</span>
+        <h2>My Hobbies</h2>
+        <p class="description">
+            View the hobbies returned by your custom API endpoint.
+        </p>
+
+        <button onclick="loadHobbies()">Load My Hobbies</button>
+
+        <div id="hobbiesResult" class="result" aria-live="polite"></div>
+    </section>
+
+    <!-- CUSTOM ENDPOINT: STUDY HOURS -->
+    <section class="card">
+        <span class="api-label">GET /studyhours</span>
+        <h2>Study Hours Calculator</h2>
+        <p class="description">
+            Enter the number of hours you studied to receive feedback.
+        </p>
+
+        <input
+            type="number"
+            id="hoursInput"
+            placeholder="Enter study hours (0–24)"
+            min="0"
+            max="24"
+            step="0.5"
+        >
+
+        <br>
+
+        <button onclick="loadStudyHours()">Check Study Hours</button>
+
+        <div id="studyResult" class="result" aria-live="polite"></div>
+    </section>
+
+    <footer>
+        Francine Escultura | BSIT 3B | Flask API Project
+    </footer>
+
+</div>
+
+<script>
+    // STUDENT INFORMATION API
+    async function loadStudent() {
+        const result = document.getElementById('studentResult');
+
+        result.classList.add('show');
+        result.textContent = 'Loading student information...';
+
+        try {
+            const response = await fetch('/student');
+
+            if (!response.ok) {
+                throw new Error('Request failed');
+            }
+
+            const data = await response.json();
+
+            result.replaceChildren();
+
+            const fields = [
+                ['Student ID', data.student_id],
+                ['Name', data.name],
+                ['Program', data.program],
+                ['Year', data.year],
+                ['Section', data.section]
+            ];
+
+            fields.forEach(([label, value]) => {
+                const p = document.createElement('p');
+                const strong = document.createElement('strong');
+
+                strong.textContent = label + ': ';
+                p.appendChild(strong);
+                p.appendChild(document.createTextNode(String(value)));
+
+                result.appendChild(p);
+            });
+
+        } catch (error) {
+            result.textContent = 'Unable to retrieve student information.';
+        }
+    }
+
+
+    // GREETING API
+    async function sayHello() {
+        const name = document.getElementById('nameInput').value.trim();
+        const result = document.getElementById('greetingResult');
+
+        result.classList.add('show');
+        result.textContent = 'Loading greeting...';
+
+        try {
+            const response = await fetch(
+                '/hello?name=' + encodeURIComponent(name || 'Student')
+            );
+
+            if (!response.ok) {
+                throw new Error('Request failed');
+            }
+
+            const data = await response.json();
+            result.textContent = data.message;
+
+        } catch (error) {
+            result.textContent = 'Unable to retrieve greeting.';
+        }
+    }
+
+
+    // CUSTOM ENDPOINT: HOBBIES
+    async function loadHobbies() {
+        const result = document.getElementById('hobbiesResult');
+
+        result.classList.add('show');
+        result.textContent = 'Loading hobbies...';
+
+        try {
+            const response = await fetch('/hobbies');
+
+            if (!response.ok) {
+                throw new Error('Request failed');
+            }
+
+            const data = await response.json();
+
+            result.replaceChildren();
+
+            const student = document.createElement('p');
+            const studentLabel = document.createElement('strong');
+
+            studentLabel.textContent = 'Student: ';
+            student.appendChild(studentLabel);
+            student.appendChild(document.createTextNode(data.student));
+            result.appendChild(student);
+
+            const heading = document.createElement('p');
+            heading.textContent = 'My hobbies:';
+            result.appendChild(heading);
+
+            const list = document.createElement('ul');
+
+            data.hobbies.forEach(hobby => {
+                const item = document.createElement('li');
+                item.textContent = hobby;
+                list.appendChild(item);
+            });
+
+            result.appendChild(list);
+
+            const total = document.createElement('p');
+            const totalLabel = document.createElement('strong');
+
+            totalLabel.textContent = 'Total Hobbies: ';
+            total.appendChild(totalLabel);
+            total.appendChild(
+                document.createTextNode(String(data.total_hobbies))
+            );
+
+            result.appendChild(total);
+
+        } catch (error) {
+            result.textContent = 'Unable to retrieve hobbies.';
+        }
+    }
+
+
+    // CUSTOM ENDPOINT: STUDY HOURS
+    async function loadStudyHours() {
+        const hours = document.getElementById('hoursInput').value;
+        const result = document.getElementById('studyResult');
+
+        result.classList.add('show');
+
+        if (hours === '' || Number(hours) < 0 || Number(hours) > 24) {
+            result.textContent = 'Please enter a number between 0 and 24.';
+            return;
+        }
+
+        result.textContent = 'Checking study hours...';
+
+        try {
+            const response = await fetch(
+                '/studyhours?hours=' + encodeURIComponent(hours)
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Request failed');
+            }
+
+            result.replaceChildren();
+
+            const fields = [
+                ['Student', data.student],
+                ['Study Hours', data.study_hours],
+                ['Feedback', data.feedback]
+            ];
+
+            fields.forEach(([label, value]) => {
+                const p = document.createElement('p');
+                const strong = document.createElement('strong');
+
+                strong.textContent = label + ': ';
+                p.appendChild(strong);
+                p.appendChild(document.createTextNode(String(value)));
+
+                result.appendChild(p);
+            });
+
+        } catch (error) {
+            result.textContent = error.message || 'Unable to check study hours.';
+        }
+    }
+
+
+    // ENTER KEY SUPPORT
+    document.getElementById('nameInput').addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            sayHello();
+        }
+    });
+
+    document.getElementById('hoursInput').addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            loadStudyHours();
+        }
+    });
+</script>
+
+</body>
+</html>
