@@ -4,353 +4,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Francine's Student API Interface</title>
+    <title>Student Database</title>
 
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 35px auto;
-            padding: 20px;
-            background: #f1f5f9;
-            color: #1e293b;
+            background: #f4f6f8;
+            margin: 30px;
         }
 
-        header {
-            text-align: center;
-            background: #1d4ed8;
-            color: white;
-            padding: 25px 15px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-        }
-
-        header h1 {
-            margin-top: 0;
-        }
-
-        .card {
-            background: white;
-            padding: 22px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            border: 1px solid #dbe3ee;
-        }
-
-        h2 {
-            color: #1d4ed8;
-            margin-top: 0;
+        h1, h2 {
+            color: #234b35;
         }
 
         button {
-            background: #2563eb;
+            background: #267447;
             color: white;
+            padding: 10px 15px;
             border: none;
-            border-radius: 6px;
-            padding: 10px 16px;
-            margin-top: 10px;
+            border-radius: 5px;
             cursor: pointer;
+            margin: 5px;
         }
 
         button:hover {
-            background: #1e40af;
+            background: #195632;
+        }
+
+        .student-card {
+            background: white;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 5px solid #267447;
         }
 
         input {
-            padding: 10px;
-            margin-top: 8px;
-            width: 100%;
-            max-width: 350px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            padding: 9px;
+            margin: 5px;
         }
 
-        .result {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 12px;
+        #studentList {
             margin-top: 15px;
-            overflow-wrap: anywhere;
-        }
-
-        .result p {
-            margin: 10px 0;
-        }
-
-        footer {
-            text-align: center;
-            color: #64748b;
-            font-size: 13px;
-            padding: 15px;
         }
     </style>
 </head>
 
 <body>
 
-<header>
-    <h1>Student API Interface</h1>
-    <p>Laboratory Activity 6: Flask API Integration</p>
-    <p>Welcome, Francine Escultura!</p>
-</header>
+    <h1>Student Database Management</h1>
+    <p>Welcome to Francine Escultura's Student Database.</p>
 
-<!-- STUDENT INFORMATION -->
-<section class="card">
-    <h2>Student Information</h2>
-    <p>Click the button to load your student information.</p>
+    <hr>
 
-    <button onclick="loadStudent()">
-        Load Student Information
-    </button>
+    <h2>Students from Database</h2>
 
-    <div id="studentResult" class="result" aria-live="polite">
-        Student information will appear here.
-    </div>
-</section>
+    <button onclick="loadStudents()">Load Students</button>
 
-<!-- GREETING API -->
-<section class="card">
-    <h2>Greeting API</h2>
+    <div id="studentList"></div>
 
-    <label for="nameInput">Enter your first name:</label>
-    <br>
-    <input
-        type="text"
-        id="nameInput"
-        placeholder="Enter your first name"
-    >
+    <hr>
 
-    <br>
-    <button onclick="sayHello()">Say Hello</button>
+    <h2>Search Student by ID</h2>
 
-    <div id="greetingResult" class="result" aria-live="polite">
-        Your greeting will appear here.
-    </div>
-</section>
+    <input type="number" id="studentId" placeholder="Enter student ID">
+    <button onclick="loadStudentById()">Search Student</button>
 
-<!-- HOBBIES API -->
-<section class="card">
-    <h2>My Hobbies</h2>
-    <p>Click below to retrieve your hobbies from the API.</p>
+    <div id="singleStudent"></div>
 
-    <button onclick="loadHobbies()">Load My Hobbies</button>
+    <hr>
 
-    <div id="hobbiesResult" class="result" aria-live="polite">
-        Your hobbies will appear here.
-    </div>
-</section>
+    <h2>Filter Students by Section</h2>
 
-<!-- STUDY HOURS API -->
-<section class="card">
-    <h2>Study Hours API</h2>
-    <p>Enter how many hours you study in a day.</p>
+    <input type="text" id="section" placeholder="Enter section (Example: 3B)">
+    <button onclick="loadBySection()">Search Section</button>
 
-    <label for="hoursInput">Study hours (0–24):</label>
-    <br>
-    <input
-        type="number"
-        id="hoursInput"
-        min="0"
-        max="24"
-        step="0.5"
-        placeholder="Example: 4"
-    >
+    <div id="sectionList"></div>
 
-    <br>
-    <button onclick="checkStudyHours()">Check Study Hours</button>
-
-    <div id="studyResult" class="result" aria-live="polite">
-        Your study feedback will appear here.
-    </div>
-</section>
-
-<footer>
-    Flask API Project | BSIT 3B
-</footer>
-
-<script>
-    // 1. STUDENT INFORMATION API
-    function loadStudent() {
-        const result = document.getElementById("studentResult");
-        result.textContent = "Loading student information...";
-
-        fetch("/student")
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Failed to load student information");
-                }
-                return response.json();
-            })
+    <script>
+        function loadStudents() {
+            fetch('/students')
+            .then(response => response.json())
             .then(data => {
-                result.replaceChildren();
+                let output = '';
 
-                const fields = [
-                    ["Student ID", data.student_id],
-                    ["Name", data.name],
-                    ["Program", data.program],
-                    ["Year", data.year],
-                    ["Section", data.section]
-                ];
-
-                fields.forEach(([label, value]) => {
-                    const p = document.createElement("p");
-                    const strong = document.createElement("strong");
-
-                    strong.textContent = label + ": ";
-                    p.appendChild(strong);
-                    p.appendChild(
-                        document.createTextNode(String(value ?? ""))
-                    );
-                    result.appendChild(p);
-                });
-            })
-            .catch(() => {
-                result.textContent =
-                    "Unable to retrieve student information.";
-            });
-    }
-
-    // 2. GREETING API
-    function sayHello() {
-        const name = document.getElementById("nameInput").value.trim();
-        const result = document.getElementById("greetingResult");
-
-        if (!name) {
-            result.textContent = "Please enter your first name.";
-            return;
-        }
-
-        result.textContent = "Loading greeting...";
-
-        fetch("/hello?name=" + encodeURIComponent(name))
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Greeting request failed");
-                }
-                return response.json();
-            })
-            .then(data => {
-                result.textContent = data.message;
-            })
-            .catch(() => {
-                result.textContent = "Unable to retrieve greeting.";
-            });
-    }
-
-    // 3. HOBBIES API
-    function loadHobbies() {
-        const result = document.getElementById("hobbiesResult");
-        result.textContent = "Loading hobbies...";
-
-        fetch("/hobbies")
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Hobbies request failed");
-                }
-                return response.json();
-            })
-            .then(data => {
-                result.replaceChildren();
-
-                const student = document.createElement("p");
-                const strong = document.createElement("strong");
-
-                strong.textContent = "Student: ";
-                student.appendChild(strong);
-                student.appendChild(
-                    document.createTextNode(data.student)
-                );
-                result.appendChild(student);
-
-                const heading = document.createElement("p");
-                heading.textContent = "My hobbies:";
-                result.appendChild(heading);
-
-                const list = document.createElement("ul");
-
-                data.hobbies.forEach(hobby => {
-                    const item = document.createElement("li");
-                    item.textContent = hobby;
-                    list.appendChild(item);
+                data.forEach(student => {
+                    output += `
+                        <div class="student-card">
+                            <b>${student.student_id}</b><br>
+                            Name: ${student.name}<br>
+                            Program: ${student.program}<br>
+                            Year: ${student.year}<br>
+                            Section: ${student.section}
+                        </div>
+                    `;
                 });
 
-                result.appendChild(list);
-
-                const total = document.createElement("p");
-                total.textContent =
-                    "Total hobbies: " + data.total_hobbies;
-                result.appendChild(total);
-            })
-            .catch(() => {
-                result.textContent = "Unable to retrieve hobbies.";
-            });
-    }
-
-    // 4. STUDY HOURS API
-    function checkStudyHours() {
-        const input = document.getElementById("hoursInput");
-        const result = document.getElementById("studyResult");
-        const hours = input.value.trim();
-
-        if (hours === "") {
-            result.textContent = "Please enter your study hours.";
-            return;
-        }
-
-        const numberOfHours = Number(hours);
-
-        if (!Number.isFinite(numberOfHours) ||
-            numberOfHours < 0 ||
-            numberOfHours > 24) {
-            result.textContent =
-                "Please enter a number between 0 and 24.";
-            return;
-        }
-
-        result.textContent = "Checking your study hours...";
-
-        fetch("/studyhours?hours=" + encodeURIComponent(hours))
-            .then(async response => {
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || "Request failed");
-                }
-
-                return data;
-            })
-            .then(data => {
-                result.replaceChildren();
-
-                const details = [
-                    ["Student", data.student],
-                    ["Study hours", data.study_hours],
-                    ["Feedback", data.feedback]
-                ];
-
-                details.forEach(([label, value]) => {
-                    const p = document.createElement("p");
-                    const strong = document.createElement("strong");
-
-                    strong.textContent = label + ": ";
-                    p.appendChild(strong);
-                    p.appendChild(
-                        document.createTextNode(String(value))
-                    );
-                    result.appendChild(p);
-                });
+                document.getElementById('studentList').innerHTML =
+                    output || '<p>No student records found.</p>';
             })
             .catch(error => {
-                result.textContent =
-                    error.message || "Unable to check study hours.";
+                document.getElementById('studentList').innerHTML =
+                    '<p>Unable to retrieve student records.</p>';
             });
-    }
-</script>
+        }
+
+        function loadStudentById() {
+            const id = document.getElementById('studentId').value;
+
+            if (!id) {
+                alert('Please enter a student ID.');
+                return;
+            }
+
+            fetch('/students/' + id)
+            .then(response => response.json())
+            .then(student => {
+                if (student.error) {
+                    document.getElementById('singleStudent').innerHTML =
+                        '<p>Student not found.</p>';
+                    return;
+                }
+
+                document.getElementById('singleStudent').innerHTML = `
+                    <div class="student-card">
+                        <b>${student.student_id}</b><br>
+                        Name: ${student.name}<br>
+                        Program: ${student.program}<br>
+                        Year: ${student.year}<br>
+                        Section: ${student.section}
+                    </div>
+                `;
+            })
+            .catch(error => {
+                document.getElementById('singleStudent').innerHTML =
+                    '<p>Unable to retrieve student.</p>';
+            });
+        }
+
+        function loadBySection() {
+            const section = document.getElementById('section').value.trim();
+
+            if (!section) {
+                alert('Please enter a section.');
+                return;
+            }
+
+            fetch('/students/section/' + encodeURIComponent(section))
+            .then(response => response.json())
+            .then(data => {
+                let output = '';
+
+                data.forEach(student => {
+                    output += `
+                        <div class="student-card">
+                            <b>${student.student_id}</b><br>
+                            Name: ${student.name}<br>
+                            Program: ${student.program}<br>
+                            Year: ${student.year}<br>
+                            Section: ${student.section}
+                        </div>
+                    `;
+                });
+
+                document.getElementById('sectionList').innerHTML =
+                    output || '<p>No students found in this section.</p>';
+            })
+            .catch(error => {
+                document.getElementById('sectionList').innerHTML =
+                    '<p>Unable to retrieve records.</p>';
+            });
+        }
+    </script>
 
 </body>
 </html>
